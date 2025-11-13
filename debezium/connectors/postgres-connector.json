@@ -1,0 +1,68 @@
+{
+  "name": "postgres-ecommerce-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+    
+    "database.hostname": "postgres-source",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "postgres123",
+    "database.dbname": "ecommerce_db",
+    "database.server.name": "ecommerce_postgres",
+    
+    "plugin.name": "pgoutput",
+    "publication.autocreate.mode": "filtered",
+    "slot.name": "debezium_ecommerce_slot",
+    
+    "table.include.list": "public.customers,public.vehicles,public.orders,public.order_items,public.payments",
+    
+    "topic.prefix": "ecommerce",
+    "topic.creation.enable": "true",
+    "topic.creation.default.replication.factor": 1,
+    "topic.creation.default.partitions": 3,
+    "topic.creation.default.cleanup.policy": "delete",
+    "topic.creation.default.retention.ms": 604800000,
+    
+    "include.schema.changes": "true",
+    "include.query": "false",
+    
+    "transforms": "unwrap,addPrefix",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.drop.tombstones": "false",
+    "transforms.unwrap.delete.handling.mode": "rewrite",
+    "transforms.unwrap.add.fields": "op,source.ts_ms,source.db,source.table",
+    
+    "transforms.addPrefix.type": "org.apache.kafka.connect.transforms.RegexRouter",
+    "transforms.addPrefix.regex": ".*",
+    "transforms.addPrefix.replacement": "cdc.$0",
+    
+    "snapshot.mode": "initial",
+    "snapshot.locking.mode": "minimal",
+    
+    "heartbeat.interval.ms": "10000",
+    "heartbeat.action.query": "INSERT INTO heartbeat (status, last_update) VALUES ('alive', CURRENT_TIMESTAMP) ON CONFLICT (id) DO UPDATE SET last_update = EXCLUDED.last_update",
+    
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    
+    "errors.tolerance": "all",
+    "errors.log.enable": "true",
+    "errors.log.include.messages": "true",
+    
+    "decimal.handling.mode": "double",
+    "time.precision.mode": "adaptive_time_microseconds",
+    
+    "max.batch.size": "2048",
+    "max.queue.size": "8192",
+    "poll.interval.ms": "1000",
+    
+    "skipped.operations": "none",
+    
+    "tombstones.on.delete": "true",
+    
+    "publication.name": "debezium_publication"
+  }
+}
